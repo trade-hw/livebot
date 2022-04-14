@@ -9,7 +9,7 @@ telegram_chat_id = "telegram_chat_id"
 telegram_bot = telegram.Bot(token=telegram_token)
 
 def telegram_send(message):
-    telegram_bot.sendMessage(chat_id=telegram_chat_id, text='[UPbit 자동매매]\n'+message)
+    telegram_bot.sendMessage(chat_id=telegram_chat_id, text=message)
 
 TICKER = 'KRW-BTC'
 INTERVAL = 'minute3'
