@@ -1,6 +1,7 @@
 import pyupbit
 import time
 import datetime
+import telegram
 TICKER = 'KRW-BTC'
 INTERVAL = 'minute3'
 if INTERVAL == 'minute1':
@@ -30,6 +31,18 @@ else:
 KVALUE = 0.5  # k값 by 백테스팅
 BREAK_POINT = 0.999  # 하락 브레이크포인트 설정 (0.01 == 1%)
 
+# Login to telegram
+def login():  # 로그인
+    f = open('key/key.txt', 'r')
+    lines = f.readlines()
+    telegram_token = lines[3].strip()
+    telegram_chat_id = lines[4].strip()
+    f.close()
+    
+telegram_bot = telegram.Bot(token=telegram_token)
+
+def telegram_send(message):
+    telegram_bot.sendMessage(chat_id=telegram_chat_id, message)
 
 def cal_target(ticker):  # 타겟 금액 리턴
     df = pyupbit.get_ohlcv(ticker, INTERVAL)  # 봉 산출
@@ -53,9 +66,13 @@ def get_ma5(ticker):  # INTERVAL 기준 5봉 이동 평균선 조회
 def print_balance(upbit):  # 보유 잔고 출력
     balances = upbit.get_balances()  # 보유 잔고 산출
     print('\n<<< holding Price >>>')
+    telegram_send('📢 <<< holding Price >>>')
+    
     for balance in balances:
         print(balance['currency'], ':', balance['balance'])
+        telegram_send(balance['currency'], ':', balance['balance'])
     print('now TIME:', datetime.datetime.now())
+    telegram_send('now TIME:', datetime.datetime.now())
     print('\n')
 
 def up_down(price, price_open):  # 상승장 하락장 리턴
@@ -64,7 +81,7 @@ def up_down(price, price_open):  # 상승장 하락장 리턴
 
 # Login to Upbit
 def login():  # 로그인
-    f = open('key/upbit_key.txt', 'r')
+    f = open('key/key.txt', 'r')
     lines = f.readlines()
     access = lines[0].strip()  # access key
     secret = lines[1].strip()  # secret key
@@ -73,11 +90,14 @@ def login():  # 로그인
     try:
         upbit = pyupbit.Upbit(access, secret)  # class instance object
         print('Welcome [ M A N S U rrr ] -- Upbit Auto Trading --', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+        telegram_send('Welcome [ M A N S U rrr ] -- Upbit Auto Trading --', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
     except:
         print('Upbit login error!!')
+        telegram_send('Upbit login error!!')
         exit()
 
     print_balance(upbit)  # 로그인 당시 전체 잔고 출력
+    telegram_send(print_balance(upbit))
 
     return upbit
 
@@ -130,6 +150,7 @@ while True:
             op_mode = True
             ma5 = get_ma5(TICKER)
             print_balance(upbit)
+            telegram_send(print_balance(upbit))
 
         # 매 초마다 조건 확인후 매수 시도
         if op_mode is True and hold is False and price is not None and price >= target and price_open > ma5:
@@ -137,23 +158,29 @@ while True:
             krw_balance = upbit.get_balance('KRW')  # 보유 원화 저장
             upbit.buy_market_order(TICKER, krw_balance * 0.95)  # 보유 원화(시드머니)의 n배만큼 시장가 매수 (24%)
             print('target COIN - buy OK!!')
+            telegram_send('target COIN - buy OK!!')
             hold = True  # 보유여부 True 변경
 
         # 5% 하락시 강제 매도 후 일시중지
         if op_mode is True and hold is True and price is not None and ((price/target) < BREAK_POINT):
             upbit.sell_market_order(TICKER, ticker_balance)  # 보유 코인 전량 시장가 매도
             print('stop Loss SELL.. T.T')
+            telegram_send('stop Loss SELL.. T.T')
             hold = False  # 보유여부 False 변경
             op_mode = False  # 일시중지
             time.sleep(5)
     except:
         print('error - error - error !!')
+        telegram_send('error - error - error !!')
 
     # 상태 출력
     if i == 10:
         print(f"■ now TIME - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
+        telegram_send(f"■ now TIME - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
         print(f"focusP: {target} | nowP: {price} | inSIGN: {price_open > ma5} | Holding: {hold} | working: {op_mode}")
+        telegram_send(f"focusP: {target} | nowP: {price} | inSIGN: {price_open > ma5} | Holding: {hold} | working: {op_mode}")
         print(f"return KRW: {upbit.get_balance('KRW') - seed_money} | holdind NUM: {ticker_balance} | target WIN: {price >= target} | startP: {price_open} | market:{up_down(price, price_open)}")
+        telegram_send(f"return KRW: {upbit.get_balance('KRW') - seed_money} | holdind NUM: {ticker_balance} | target WIN: {price >= target} | startP: {price_open} | market:{up_down(price, price_open)}"))
         i = 0
     i += 1
     time.sleep(1)
