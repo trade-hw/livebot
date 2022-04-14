@@ -1,4 +1,2 @@
 acc
 sec
-token
-id
