@@ -176,7 +176,7 @@ while True:
         print(f"focusP: {target} | nowP: {price} | inSIGN: {price_open > ma5} | Holding: {hold} | working: {op_mode}")
         telegram_send(f"focusP: {target} | nowP: {price} | inSIGN: {price_open > ma5} | Holding: {hold} | working: {op_mode}")
         print(f"return KRW: {upbit.get_balance('KRW') - seed_money} | holdind NUM: {ticker_balance} | target WIN: {price >= target} | startP: {price_open} | market:{up_down(price, price_open)}")
-        telegram_send(f"return KRW: {upbit.get_balance('KRW') - seed_money} | holdind NUM: {ticker_balance} | target WIN: {price >= target} | startP: {price_open} | market:{up_down(price, price_open)}"))
+        telegram_send(f"return KRW: {upbit.get_balance('KRW') - seed_money} | holdind NUM: {ticker_balance} | target WIN: {price >= target} | startP: {price_open} | market:{up_down(price, price_open)}")
         i = 0
     i += 1
     time.sleep(1)
