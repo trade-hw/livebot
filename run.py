@@ -2,6 +2,15 @@ import pyupbit
 import time
 import datetime
 import telegram
+
+# Telegram
+telegram_token = "telegram_token"
+telegram_chat_id = "telegram_chat_id"
+telegram_bot = telegram.Bot(token=telegram_token)
+
+def telegram_send(message):
+    telegram_bot.sendMessage(chat_id=telegram_chat_id, text='[UPbit 자동매매]\n'+message)
+
 TICKER = 'KRW-BTC'
 INTERVAL = 'minute3'
 if INTERVAL == 'minute1':
@@ -30,18 +39,6 @@ else:
     exit()
 KVALUE = 0.5  # k값 by 백테스팅
 BREAK_POINT = 0.999  # 하락 브레이크포인트 설정 (0.01 == 1%)
-
-# 텔레그램 로그인
-f = open('key.txt', 'r')
-lines = f.readlines()
-telegram_token = lines[2].strip()
-telegram_chat_id = lines[3].strip()
-f.close()
-    
-telegram_bot = telegram.Bot(token=telegram_token)
-
-def telegram_send(message):
-    telegram_bot.sendMessage(chat_id=telegram_chat_id, message)
 
 def cal_target(ticker):  # 타겟 금액 리턴
     df = pyupbit.get_ohlcv(ticker, INTERVAL)  # 봉 산출
