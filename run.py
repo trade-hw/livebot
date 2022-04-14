@@ -164,7 +164,7 @@ while True:
 
     # 상태 출력
     if i == 10:
-        print(f"■ now TIME - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
+        print(f"■ 현재시간 - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
         telegram_send(f"■ now TIME - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
         print(f"focusP: {target} | nowP: {price} | inSIGN: {price_open > ma5} | Holding: {hold} | working: {op_mode}")
         telegram_send(f"목표가 : {target} / 현재가 : {price} / 진입신호 : {price_open > ma5} / 보유상태 : {hold} / 동작상태 : {op_mode}")
