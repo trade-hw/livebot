@@ -31,13 +31,12 @@ else:
 KVALUE = 0.5  # k값 by 백테스팅
 BREAK_POINT = 0.999  # 하락 브레이크포인트 설정 (0.01 == 1%)
 
-# Login to telegram
-def login():  # 로그인
-    f = open('key.txt', 'r')
-    lines = f.readlines()
-    telegram_token = lines[2].strip()
-    telegram_chat_id = lines[3].strip()
-    f.close()
+# 텔레그램 로그인
+f = open('key.txt', 'r')
+lines = f.readlines()
+telegram_token = lines[2].strip()
+telegram_chat_id = lines[3].strip()
+f.close()
     
 telegram_bot = telegram.Bot(token=telegram_token)
 
