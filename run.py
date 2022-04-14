@@ -167,9 +167,9 @@ while True:
         print(f"■ now TIME - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
         telegram_send(f"■ 현재시간 - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
         print(f"focusP: {target} | nowP: {price} | inSIGN: {price_open > ma5} | Holding: {hold} | working: {op_mode}")
-        telegram_send(f"목표가 : {target} / 현재가 : {price} / 진입신호 : {price_open > ma5} / 보유상태 : {hold} / 동작상태 : {op_mode}")
+        telegram_send(f"목표가 : {target} / 현재가 : {price} / 시작가 : {price_open} / 종목보유량 : {ticker_balance} / 수익현황KRW : {upbit.get_balance('KRW') - seed_money} / 보유상태 : {hold}")
         print(f"return KRW: {upbit.get_balance('KRW') - seed_money} | holdind NUM: {ticker_balance} | target WIN: {price >= target} | startP: {price_open} | market:{up_down(price, price_open)}")
-        telegram_send(f"수익현황KRW : {upbit.get_balance('KRW') - seed_money} / 종목보유량 : {ticker_balance} / 목표가 돌파 : {price >= target} / 시작가 : {price_open} / 시장현황 : {up_down(price, price_open)}")
+        telegram_send(f"진입신호 : {price_open > ma5} / 목표가 돌파 : {price >= target} / 동작상태 : {op_mode} / 시장현황 : {up_down(price, price_open)}")
         i = 0
     i += 1
     time.sleep(1)
