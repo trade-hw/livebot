@@ -1,6 +1,5 @@
-# Coin-Auto-Trading
-업비트 거래소 코인 자동매매
+# Coin-Auto-Trading (코드주인 mojitozoo20 )
+https://github.com/mojitozoo20
 
-등락률을 이용한 실시간 업비트 자동매매
 
-2021.07.29 공개 전환
+텔레그램 메시지 전송기능 추가해봤습니다.
