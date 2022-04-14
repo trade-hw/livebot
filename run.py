@@ -62,13 +62,10 @@ def get_ma5(ticker):  # INTERVAL 기준 5봉 이동 평균선 조회
 def print_balance(upbit):  # 보유 잔고 출력
     balances = upbit.get_balances()  # 보유 잔고 산출
     print('\n<<< holding Price >>>')
-    telegram_send('📢 <<< holding Price >>>')
     
     for balance in balances:
         print(balance['currency'], ':', balance['balance'])
-        telegram_send(balance['currency'], ':', balance['balance'])
     print('now TIME:', datetime.datetime.now())
-    telegram_send('now TIME:', datetime.datetime.now())
     print('\n')
 
 def up_down(price, price_open):  # 상승장 하락장 리턴
@@ -86,14 +83,11 @@ def login():  # 로그인
     try:
         upbit = pyupbit.Upbit(access, secret)  # class instance object
         print('Welcome [ M A N S U rrr ] -- Upbit Auto Trading --', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-        telegram_send('Welcome [ M A N S U rrr ] -- Upbit Auto Trading --', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
     except:
         print('Upbit login error!!')
-        telegram_send('Upbit login error!!')
         exit()
 
     print_balance(upbit)  # 로그인 당시 전체 잔고 출력
-    telegram_send(print_balance(upbit))
 
     return upbit
 
@@ -146,7 +140,6 @@ while True:
             op_mode = True
             ma5 = get_ma5(TICKER)
             print_balance(upbit)
-            telegram_send(print_balance(upbit))
 
         # 매 초마다 조건 확인후 매수 시도
         if op_mode is True and hold is False and price is not None and price >= target and price_open > ma5:
