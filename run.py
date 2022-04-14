@@ -33,10 +33,10 @@ BREAK_POINT = 0.999  # 하락 브레이크포인트 설정 (0.01 == 1%)
 
 # Login to telegram
 def login():  # 로그인
-    f = open('key/key.txt', 'r')
+    f = open('key.txt', 'r')
     lines = f.readlines()
-    telegram_token = lines[3].strip()
-    telegram_chat_id = lines[4].strip()
+    telegram_token = lines[2].strip()
+    telegram_chat_id = lines[3].strip()
     f.close()
     
 telegram_bot = telegram.Bot(token=telegram_token)
@@ -81,7 +81,7 @@ def up_down(price, price_open):  # 상승장 하락장 리턴
 
 # Login to Upbit
 def login():  # 로그인
-    f = open('key/key.txt', 'r')
+    f = open('key.txt', 'r')
     lines = f.readlines()
     access = lines[0].strip()  # access key
     secret = lines[1].strip()  # secret key
