@@ -213,11 +213,9 @@ while True:
     # 상태 출력
     if i == 10:
         print(f"■ now TIME - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
-        telegram_send(f"■ 현재시간 - {now.hour}:{now.minute}:{now.second} << {TICKER} >>")
         print(f"focusP: {target} | nowP: {price} | inSIGN: {price_open > ma5} | Holding: {hold} | working: {op_mode}")
-        telegram_send(f"목표가 : {target} / 현재가 : {price} / 시작가 : {price_open} / 종목보유량 : {ticker_balance} / 수익현황KRW : {upbit.get_balance('KRW') - seed_money} / 보유상태 : {hold}")
         print(f"return KRW: {upbit.get_balance('KRW') - seed_money} | holdind NUM: {ticker_balance} | target WIN: {price >= target} | startP: {price_open} | market:{up_down(price, price_open)}")
-        telegram_send(f"진입신호 : {price_open > ma5} / 목표가 돌파 : {price >= target} / 동작상태 : {op_mode} / 시장현황 : {up_down(price, price_open)}")
+        telegram_send(f"■ 현재시간 {now.hour}:{now.minute}:{now.second}\n■ [ {TICKER} ] Bot\nㅡㅡㅡㅡ\n진입신호 : {price_open > ma5}\n목표돌파 : {price >= target}\n실행상태 : {op_mode}\n시장현황 : {up_down(price, price_open)}\n35-65 RSI : {round(sell_rsi, 2)}\nㅡㅡㅡㅡ\n목표가 : {round(target)}\n현재가 : {round(price)}\n시작가 : {round(price_open)}\n평단가 : {round(avg)}\nㅡㅡㅡㅡ\n*TS발동 : {round(avg * TSTOP)}\n*TS스탑 : {round(price_high * TSTOP_MSG)}\n*물-타기 : {round(avg * AFTER_BUY)}\n*손절-가 : {round(avg * SLOSS)}\nㅡㅡㅡㅡ\n보유상태 : {hold}\n보유량 : {ticker_balance}\n평가금 : {round(ticker_balance * price)}\nㅡㅡㅡㅡ\n총자산 : {round(((ticker_balance * price) + krw_balance))}\n차익금 : {round(upbit.get_balance('KRW') - seed_money)}")
         i = 0
     i += 1
-    time.sleep(1)
+    time.sleep(0.5)
