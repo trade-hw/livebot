@@ -51,14 +51,14 @@ else:
     print("CANDLE_REMAIN set error!!")
     exit()
 KVALUE = 0.1  # k값 by 백테스팅
-TSTOP_MIN = 1.007  # 최 소  1% 이 상  수 익 이  발 생 한  경 우 에  Traillig Stop 동 작
-TSTOP_GAP = 1.0025  # 최 고 점  대 비  0.25% 하 락 시  익 절  값
+TSTOP_MIN = 1.007  # 최소 0.7% 이상 수익이 발생한 경우에 Traillig Stop 동작
+TSTOP_GAP = 1.0025  # 최고점 대비 0.25% 하락시 익절 값
 
-TSTOP = TSTOP_MIN  # 텔 레 그 램  전 송  트 레 일 링 스 탑  발 동  값
-TSTOP_MSG = 0.9975  # 텔 레 그 램  전 송  트 레 일 링 스 탑  익 절  값
+TSTOP = TSTOP_MIN  # 텔레그램 전송 트레일링스탑 발동 값
+TSTOP_MSG = 0.9975  # 텔레그램 전송 트레일링스탑 익절 값
 
 AFTER_BUY = 0.97
-SLOSS = 0.995  # 스 탑 로 스  손 절  값  0.2%
+SLOSS = 0.995  # 스탑로스 손절 값 0.2%
 
 def cal_target(ticker):  # 타겟 금액 리턴
     df = pyupbit.get_ohlcv(ticker, INTERVAL)  # 봉 산출
@@ -74,10 +74,10 @@ def cal_open_price(ticker):  # 시가 리턴
     open_price = current['open']  # 시가 산출
     return open_price
 
-def cal_high_price(ticker):  # 고 가  리 턴
+def cal_high_price(ticker):  # 고가 리턴
     df = pyupbit.get_ohlcv(ticker, INTERVAL == 'minute15')  # 봉  호 출
-    current = df.iloc[-1]  # 현 재  봉
-    high_price = current['high']  # 고 가  산 출
+    current = df.iloc[-1]  # 현재 봉
+    high_price = current['high']  # 고가 산출
     return high_price
 
 def get_ma5(ticker):  # INTERVAL 기준 5봉 이동 평균선 조회
@@ -124,7 +124,7 @@ target = cal_target(TICKER)
 price = pyupbit.get_current_price(TICKER)  # 프로그램 시작시 종목 현재가 산출
 hold_check = upbit.get_balance(TICKER)
 price_open = cal_open_price(TICKER)  # 시가 저장
-price_high = cal_high_price(TICKER)  # 고 가  저 장
+price_high = cal_high_price(TICKER)  # 고가 저장
 ticker_balance = upbit.get_balance(TICKER)  # 종목 보유량 저장
 ma5 = get_ma5(TICKER)
 i = 0
@@ -147,9 +147,30 @@ while True:
         now = datetime.datetime.now()
         price = pyupbit.get_current_price(TICKER)  # 매 초 현재가 호출
         ticker_balance = upbit.get_balance(TICKER)  # 보유 코인 잔고 저장
+        target = cal_target(TICKER)
+        hold_check = upbit.get_balance(TICKER)
+        krw_balance = upbit.get_balance('KRW')  # 보유 원화 저장
+        avg = upbit.get_avg_buy_price(TICKER)  # 매수 평균 가
+        ma5 = get_ma5(TICKER)
+        price_open = cal_open_price(TICKER)  # 시가 저장
+        price_high = cal_high_price(TICKER)  # 고가 저장
+        data = pyupbit.get_ohlcv(TICKER, interval="minute3")  # rsi 데이타
+        sell_data = pyupbit.get_ohlcv(TICKER, interval="minute60")  # sell_rsi 데이타
+        now_rsi = rsi(data, 14).iloc[-1]  # rsi
+        sell_rsi = rsi(sell_data, 14).iloc[-1]  # sell_rsi
+        time.sleep(0.5)
+        
+        # 익절 매도  (sell_rsi > 65)
+        if ((price / avg) > TSTOP_MIN > TSTOP_GAP <= (price_high / price)):
+            if op_mode is True and hold is True and price is not None:
+                upbit.sell_market_order(TICKER, ticker_balance)  # 보유 코인 전량 시장가 매도
+                print('ALL COIN - sell OK!!')
+                telegram_send('■■■■■■■■\n 수익실현 ~!!\n 전량매도 ^-^+\n■■■■■■■■')
+                hold = False  # 보유여부 False 변경
+            op_mode = False  # 타겟 갱신시까지 거래 잠시 중지
 
         # 매도 - 봉의 종가지점에서 전량매도
-        #if (now.minute % CANDLE == CANDLE_REMAIN) and (50 <= now.second <= 59):
+        # if (now.minute % CANDLE == CANDLE_REMAIN) and (50 <= now.second <= 59):
         #    if op_mode is True and hold is True:
         #        upbit.sell_market_order(TICKER, ticker_balance)  # 보유 코인 전량 시장가 매도
         #        print('ALL COIN - sell OK!!')
@@ -160,33 +181,34 @@ while True:
 
         # hh:mm:05 목표가 갱신
         # 매 봉의 5초~10초 타겟, 시가, 동작상태 ON, 이평선 계산, 보유잔고 출력
-        if (now.minute % CANDLE == 0) and (5 <= now.second <= 10):
+        if (now.minute % CANDLE == 0) and (3 <= now.second <= 7):
             target = cal_target(TICKER)
             price_open = cal_open_price(TICKER)
             op_mode = True
             ma5 = get_ma5(TICKER)
             print_balance(upbit)
 
-        # 매 초마다 조건 확인후 매수 시도
+        # 매 초마다 조건 확인후 매수 시도  sell_rsi < 35
         if op_mode is True and hold is False and price is not None and price >= target and price_open > ma5:
             # 매수
             krw_balance = upbit.get_balance('KRW')  # 보유 원화 저장
-            upbit.buy_market_order(TICKER, krw_balance * 0.95)  # 보유 원화(시드머니)의 n배만큼 시장가 매수 (24%)
+            upbit.buy_market_order(TICKER, krw_balance * 0.99)  # 보유 원화(시드머니)의 n배만큼 시장가 매수 (24%)
             print('target COIN - buy OK!!')
-            telegram_send('Buy 매수체결 완료 !!')
+            telegram_send('₩ ₩ ₩ ₩ ₩ ₩ ₩ ₩\n 신호포착\n 매수완료!!\n₩ ₩ ₩ ₩ ₩ ₩ ₩ ₩')
             hold = True  # 보유여부 True 변경
 
-        # 5% 하락시 강제 매도 후 일시중지
-        if op_mode is True and hold is True and price is not None and ((price/target) < BREAK_POINT):
+        # 스탑로스 %하락시 강제 매도 후 일시중지
+        if op_mode is True and hold is True and price is not None and ((price / avg) < SLOSS):
             upbit.sell_market_order(TICKER, ticker_balance)  # 보유 코인 전량 시장가 매도
             print('stop Loss SELL.. T.T')
-            telegram_send('스탑로스 매도체결.. T.T')
+            telegram_send('T.T.T.T.T.T.T.T\n( 스탑로스 매도체결.. T.T )\nT.T.T.T.T.T.T.T')
             hold = False  # 보유여부 False 변경
             op_mode = False  # 일시중지
-            time.sleep(5)
+            time.sleep(0.5)
     except:
-        print('error - error - error !!')
-        telegram_send('error - error - error !!')
+        print('error - error !!')
+        telegram_send('########\n########\n error !!\n########\n########')
+        time.sleep(10)
 
     # 상태 출력
     if i == 10:
