@@ -2,6 +2,7 @@ import pyupbit
 import time
 import datetime
 import telegram
+import pandas
 
 # Telegram
 telegram_token = "telegram_token"
@@ -10,6 +11,18 @@ telegram_bot = telegram.Bot(token=telegram_token)
 
 def telegram_send(message):
     telegram_bot.sendMessage(chat_id=telegram_chat_id, text=message)
+
+def rsi(ohlc: pandas.DataFrame, period: int = 14):
+    delta = ohlc["close"].diff()
+    ups, downs = delta.copy(), delta.copy()
+    ups[ups < 0] = 0
+    downs[downs > 0] = 0
+    
+    AU = ups.ewm(com = period-1, min_periods = period).mean()
+    AD = downs.abs().ewm(com = period-1, min_periods = period).mean()
+    RS = AU/AD
+    
+    return pandas.Series(100 - (100/(1 + RS)), name = "RSI")
 
 TICKER = 'KRW-BTC'
 INTERVAL = 'minute3'
@@ -37,8 +50,15 @@ elif INTERVAL == 'minute60':
 else:
     print("CANDLE_REMAIN set error!!")
     exit()
-KVALUE = 0.5  # k값 by 백테스팅
-BREAK_POINT = 0.999  # 하락 브레이크포인트 설정 (0.01 == 1%)
+KVALUE = 0.1  # k값 by 백테스팅
+TSTOP_MIN = 1.007  # 최 소  1% 이 상  수 익 이  발 생 한  경 우 에  Traillig Stop 동 작
+TSTOP_GAP = 1.0025  # 최 고 점  대 비  0.25% 하 락 시  익 절  값
+
+TSTOP = TSTOP_MIN  # 텔 레 그 램  전 송  트 레 일 링 스 탑  발 동  값
+TSTOP_MSG = 0.9975  # 텔 레 그 램  전 송  트 레 일 링 스 탑  익 절  값
+
+AFTER_BUY = 0.97
+SLOSS = 0.995  # 스 탑 로 스  손 절  값  0.2%
 
 def cal_target(ticker):  # 타겟 금액 리턴
     df = pyupbit.get_ohlcv(ticker, INTERVAL)  # 봉 산출
@@ -54,27 +74,32 @@ def cal_open_price(ticker):  # 시가 리턴
     open_price = current['open']  # 시가 산출
     return open_price
 
+def cal_high_price(ticker):  # 고 가  리 턴
+    df = pyupbit.get_ohlcv(ticker, INTERVAL == 'minute15')  # 봉  호 출
+    current = df.iloc[-1]  # 현 재  봉
+    high_price = current['high']  # 고 가  산 출
+    return high_price
+
 def get_ma5(ticker):  # INTERVAL 기준 5봉 이동 평균선 조회
     df = pyupbit.get_ohlcv(ticker, INTERVAL)
     ma = df['close'].rolling(5).mean()
-    return ma[-2]
+    return ma[-1]
 
 def print_balance(upbit):  # 보유 잔고 출력
     balances = upbit.get_balances()  # 보유 잔고 산출
     print('\n<<< holding Price >>>')
-    
     for balance in balances:
         print(balance['currency'], ':', balance['balance'])
     print('now TIME:', datetime.datetime.now())
     print('\n')
 
 def up_down(price, price_open):  # 상승장 하락장 리턴
-    return '▲▲▲' if price > price_open else '▽▽▽'
+    return '▲BULL' if price > price_open else '▽bear'
 
 
 # Login to Upbit
 def login():  # 로그인
-    f = open('key.txt', 'r')
+    f = open('./key.txt', 'r')
     lines = f.readlines()
     access = lines[0].strip()  # access key
     secret = lines[1].strip()  # secret key
@@ -99,6 +124,7 @@ target = cal_target(TICKER)
 price = pyupbit.get_current_price(TICKER)  # 프로그램 시작시 종목 현재가 산출
 hold_check = upbit.get_balance(TICKER)
 price_open = cal_open_price(TICKER)  # 시가 저장
+price_high = cal_high_price(TICKER)  # 고 가  저 장
 ticker_balance = upbit.get_balance(TICKER)  # 종목 보유량 저장
 ma5 = get_ma5(TICKER)
 i = 0
